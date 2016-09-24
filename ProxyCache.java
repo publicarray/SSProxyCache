@@ -7,10 +7,13 @@ public class ProxyCache {
     private static int port;
     /** Socket for client connections */
     private static ServerSocket socket;
+    // Memory Cache
+    private static Cache cache;
 
     /** Create the ProxyCache object and the socket */
     public static void init(int p) {
         port = p;
+        cache = new Cache();
         try {
             socket = new ServerSocket(port);
         } catch (IOException e) {
@@ -38,31 +41,45 @@ public class ProxyCache {
             return;
 
         }
-        /* Send request to server */
+        // create key
+        String key = request.getURL() + request.getPort();
+        // Check if key is in cache
+        if ((response = cache.get(key)) != null) {
+            // response is set
+            System.out.println("Retrieved" + key + " from cache.");
+        } else {
+            /* Send request to server */
+            try {
+                server = new Socket(request.getHost(), request.getPort());
+                DataOutputStream toServer = new DataOutputStream(server.getOutputStream());
+                toServer.writeBytes(request.toString());
+            } catch (UnknownHostException e) {
+                System.out.println("Unknown host: " + request.getHost());
+                System.out.println(e);
+                return;
+            } catch (IOException e) {
+                System.out.println("Error writing request to server: " + e);
+                return;
+            }
+
+             /* Read response and forward it to client */
+            try {
+                DataInputStream fromServer = new DataInputStream(server.getInputStream());
+                response = new HttpResponse(fromServer);
+                // Save response to cache
+                cache.put(key, response);
+                System.out.println("<--- Response <--- \n" + response.toString()); // Debug
+                server.close();
+            } catch (IOException e) {
+                System.out.println("Error reading response from server: " + e);
+            }
+        } // end else
         try {
-            /* Open socket and write request to socket */
-            server = new Socket(request.getHost(), request.getPort());
-            DataOutputStream toServer = new DataOutputStream(server.getOutputStream());
-            toServer.writeBytes(request.toString());
-        } catch (UnknownHostException e) {
-            System.out.println("Unknown host: " + request.getHost());
-            System.out.println(e);
-            return;
-        } catch (IOException e) {
-            System.out.println("Error writing request to server: " + e);
-            return;
-        }
-        /* Read response and forward it to client */
-        try {
-            DataInputStream fromServer = new DataInputStream(server.getInputStream());
-            response = new HttpResponse(fromServer);
-            System.out.println("<--- Response <--- \n" + response.toString()); // Debug
-            DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
             /* Write response to client. First headers, then body */
+            DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
             toClient.writeBytes(response.toString()); // headers
             response.body.writeTo(toClient); // body
             client.close();
-            server.close();
         } catch (IOException e) {
             System.out.println("Error writing response to client: " + e);
         }
