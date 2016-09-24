@@ -75,6 +75,7 @@ public class HttpResponse {
             while (bytesRead < length || loop) {
                 /* Read it in as binary data */
                 int res = fromServer.read(buf);
+                // int res = fromServer.read(buf, 0, BUF_SIZE);
                 if (res == -1) {
                     break;
                 }
@@ -88,7 +89,7 @@ public class HttpResponse {
                 //         // bytesRead += fromServer.read(buf);
                 //         body.write(buf);
                 //         // fromServer.read(buf);
-                        System.arraycopy(buf, 0, body, i, res);
+                    body[bytesRead + i] = buf[i];
                 //         // bodyBuf.put(buf);
                 }
                 bytesRead += res;

@@ -61,8 +61,8 @@ public class ProxyCache {
             DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
             toClient.writeBytes(response.toString()); // headers
             // response.body2.writeTo(toClient); // body
-            toClient.write(response.body2.toByteArray()); // body
-            // toClient.write(response.body);
+            // toClient.write(response.body2.toByteArray()); // body
+            toClient.write(response.body);
             /* Write response to client. First headers, then body */
             client.close();
             server.close();
