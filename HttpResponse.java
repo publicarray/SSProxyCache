@@ -6,10 +6,8 @@ public class HttpResponse {
     final static String CRLF = "\r\n";
     /** How big is the buffer used for reading the object */
     final static int BUF_SIZE = 8192;
-    /** Maximum size of objects that this proxy can handle. For the
-     * moment set to 1MB. You can adjust this as needed. */
-    final static int MAX_OBJECT_SIZE = 1000000;
     /** Reply status and headers */
+    int error = 0;
     String version;
     int status;
     String statusLine = "";
@@ -50,6 +48,7 @@ public class HttpResponse {
                 line = fromServer.readLine();
             }
         } catch (IOException e) {
+            // error = 500;
             System.out.println("Error reading headers from server: " + e);
             return;
         }
@@ -84,6 +83,7 @@ public class HttpResponse {
                 bytesRead += res;
             }
         } catch (IOException e) {
+            // error = 500;
             System.out.println("Error reading response body: " + e);
             return;
         }
@@ -102,5 +102,9 @@ public class HttpResponse {
         res += CRLF;
 
         return res;
+    }
+
+    public byte[] getBody() {
+        return body.toByteArray();
     }
 }
