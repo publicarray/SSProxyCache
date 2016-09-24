@@ -86,7 +86,7 @@ public class HttpRequest {
         req = method + " " + URL + " " + version + CRLF;
         req += headers;
         /* This proxy does not support persistent connections */
-        req += "Connection: close" + CRLF;
+        // req += "Connection: close" + CRLF;
         req += CRLF;
 
         return req;

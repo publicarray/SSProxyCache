@@ -1,7 +1,6 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.nio.ByteBuffer;
 
 public class HttpResponse {
     final static String CRLF = "\r\n";
@@ -16,9 +15,7 @@ public class HttpResponse {
     String statusLine = "";
     String headers = "";
     /* Body of reply */
-    ByteArrayOutputStream body2 = new ByteArrayOutputStream();
-    byte[] body = new byte[MAX_OBJECT_SIZE];
-    // ByteBuffer bodyBuf = ByteBuffer.wrap(body);
+    ByteArrayOutputStream body = new ByteArrayOutputStream();
 
     /** Read response from server. */
     public HttpResponse(DataInputStream fromServer) {
@@ -28,8 +25,10 @@ public class HttpResponse {
 
         /* First read status line and response headers */
         try {
+
             String line = fromServer.readLine();
-            while (line.length() != 0) { //java.lang.NullPointerException
+
+            while (line != null && line.length() != 0) { // line != null to medigate java.lang.NullPointerException
                 if (!gotStatusLine) {
                     statusLine = line;
                     gotStatusLine = true;
@@ -75,23 +74,13 @@ public class HttpResponse {
             while (bytesRead < length || loop) {
                 /* Read it in as binary data */
                 int res = fromServer.read(buf);
-                // int res = fromServer.read(buf, 0, BUF_SIZE);
+
                 if (res == -1) {
                     break;
                 }
                 /* Copy the bytes into body. Make sure we don't exceed
                  * the maximum object size. */
-                body2.write(buf);
-                for (int i = 0;
-                     i < res && (i + bytesRead) < MAX_OBJECT_SIZE;
-                     i++) {
-                        // body[i] = buf[];
-                //         // bytesRead += fromServer.read(buf);
-                //         body.write(buf);
-                //         // fromServer.read(buf);
-                    body[bytesRead + i] = buf[i];
-                //         // bodyBuf.put(buf);
-                }
+                body.write(buf, 0, res);
                 bytesRead += res;
             }
         } catch (IOException e) {

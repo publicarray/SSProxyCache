@@ -57,13 +57,10 @@ public class ProxyCache {
             DataInputStream fromServer = new DataInputStream(server.getInputStream());
             response = new HttpResponse(fromServer);
             System.out.println("<--- Response <--- \n" + response.toString()); // Debug
-            // System.out.println(response.body2.toString("utf-8"));
             DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
-            toClient.writeBytes(response.toString()); // headers
-            // response.body2.writeTo(toClient); // body
-            // toClient.write(response.body2.toByteArray()); // body
-            toClient.write(response.body);
             /* Write response to client. First headers, then body */
+            toClient.writeBytes(response.toString()); // headers
+            response.body.writeTo(toClient); // body
             client.close();
             server.close();
         } catch (IOException e) {
