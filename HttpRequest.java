@@ -14,15 +14,16 @@ public class HttpRequest {
     /** Server and port */
     private String host;
     private int port;
+    private int error;
 
     /** Create HttpRequest by reading it from the client socket */
     public HttpRequest(BufferedReader from) {
-
+        error = 0;
         String firstLine = "";
         try {
             firstLine = from.readLine();
-            // System.out.println(firstLine); // Debug
         } catch (IOException e) {
+            error = 500;
             System.out.println("Error reading request line: " + e);
         }
 
@@ -34,6 +35,7 @@ public class HttpRequest {
         System.out.println("URL is: " + URL);
 
         if (!method.equals("GET")) {
+            error = 501;
             System.out.println("Error: Method not GET");
         }
         try {
@@ -56,10 +58,15 @@ public class HttpRequest {
                 line = from.readLine();
             }
         } catch (IOException e) {
+            error = 500;
             System.out.println("Error reading from socket: " + e);
             return;
         }
         System.out.println("Host to contact is: " + host + " at port " + port);
+    }
+
+    public int getError() {
+        return error;
     }
 
     /** Return host for which this request is intended */
@@ -77,6 +84,11 @@ public class HttpRequest {
         return URL;
     }
 
+    // Return the method (GET, PUT, POST, etc.)
+    public String getMethod() {
+        return method;
+    }
+
     /**
      * Convert request into a string for easy re-sending.
      */
@@ -86,7 +98,7 @@ public class HttpRequest {
         req = method + " " + URL + " " + version + CRLF;
         req += headers;
         /* This proxy does not support persistent connections */
-        // req += "Connection: close" + CRLF;
+        req += "Connection: close" + CRLF;
         req += CRLF;
 
         return req;

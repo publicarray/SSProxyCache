@@ -3,10 +3,10 @@ import java.net.*;
 import java.util.*;
 import java.util.HashMap;
 
-public class Cache {
+public class SCache {
     private Map<String, HttpResponse> cacheStore;
 
-    public Cache() {
+    public SCache() {
         // synchronised HasMap prevents data corruption when reading while writing the Map
         cacheStore = Collections.synchronizedMap(new HashMap<String, HttpResponse>());
     }

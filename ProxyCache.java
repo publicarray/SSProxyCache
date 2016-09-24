@@ -8,12 +8,12 @@ public class ProxyCache {
     /** Socket for client connections */
     private static ServerSocket socket;
     // Memory Cache
-    private static Cache cache;
+    private static SCache cache;
 
     /** Create the ProxyCache object and the socket */
     public static void init(int p) {
         port = p;
-        cache = new Cache();
+        cache = new SCache();
         try {
             socket = new ServerSocket(port);
         } catch (IOException e) {
@@ -22,7 +22,17 @@ public class ProxyCache {
         }
     }
 
+    public static int ifErrorSend(int errorCode, Socket client) {
+        if (errorCode != 0) {
+            SHttpErrorResponse errorResponse = new SHttpErrorResponse(errorCode);
+            errorResponse.send(client);
+            return 1;
+        }
+        return 0;
+    }
+
     public static void handle(Socket client) {
+        int errorCode = 0;
         Socket server = null;
         HttpRequest request = null;
         HttpResponse response = null;
@@ -35,9 +45,14 @@ public class ProxyCache {
         try {
             BufferedReader fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
             request = new HttpRequest(fromClient);
+            if ((errorCode = request.getError()) != 0) { // check for error
+                new SHttpErrorResponse(errorCode).send(client); // craft and send a response
+                return;
+            }
             System.out.println("---> Request --->\n" + request.toString()); // Debug
         } catch (IOException e) {
             System.out.println("Error reading request from client: " + e);
+            new SHttpErrorResponse(500).send(client);
             return;
 
         }
@@ -52,36 +67,48 @@ public class ProxyCache {
             try {
                 server = new Socket(request.getHost(), request.getPort());
                 DataOutputStream toServer = new DataOutputStream(server.getOutputStream());
-                toServer.writeBytes(request.toString());
+                 toServer.writeBytes(request.toString());
             } catch (UnknownHostException e) {
                 System.out.println("Unknown host: " + request.getHost());
                 System.out.println(e);
+                new SHttpErrorResponse(404).send(client);
                 return;
             } catch (IOException e) {
                 System.out.println("Error writing request to server: " + e);
+                new SHttpErrorResponse(500).send(client);
                 return;
             }
 
-             /* Read response and forward it to client */
+            /* Read response and forward it to client */
             try {
                 DataInputStream fromServer = new DataInputStream(server.getInputStream());
                 response = new HttpResponse(fromServer);
+                // if ((errorCode = response.getError()) != 0) { // check for error
+                //     errorResponse = new SHttpErrorResponse(errorCode);
+                //     errorResponse.send(client);
+                //     return;
+                // }
+
                 // Save response to cache
                 cache.put(key, response);
                 System.out.println("<--- Response <--- \n" + response.toString()); // Debug
                 server.close();
             } catch (IOException e) {
                 System.out.println("Error reading response from server: " + e);
+                new SHttpErrorResponse(520).send(client);
             }
         } // end else
+
         try {
             /* Write response to client. First headers, then body */
             DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
             toClient.writeBytes(response.toString()); // headers
+            // toClient.write(response.getBody()); // body
             response.body.writeTo(toClient); // body
             client.close();
         } catch (IOException e) {
             System.out.println("Error writing response to client: " + e);
+            new SHttpErrorResponse(500).send(client);
         }
     }
 
