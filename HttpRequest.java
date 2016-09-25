@@ -23,7 +23,7 @@ public class HttpRequest {
         try {
             firstLine = from.readLine();
         } catch (IOException e) {
-            error = 500;
+            error = 400;
             System.out.println("Error reading request line: " + e);
         }
 
@@ -34,9 +34,9 @@ public class HttpRequest {
 
         System.out.println("URL is: " + URL);
 
-        if (!method.equals("GET")) {
+        if (!(method.equals("GET") || method.equals("CONNECT"))) {
             error = 501;
-            System.out.println("Error: Method not GET");
+            System.out.println("Error: Method not GET or CONNECT");
         }
         try {
             String line = from.readLine();
@@ -58,7 +58,7 @@ public class HttpRequest {
                 line = from.readLine();
             }
         } catch (IOException e) {
-            error = 500;
+            error = 400;
             System.out.println("Error reading from socket: " + e);
             return;
         }

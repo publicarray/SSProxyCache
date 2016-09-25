@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class SHttpErrorResponse {
+public class SHttpStatusResponse {
     final static String CRLF = "\r\n";
 
 // HTTP/1.1 301 Moved Permanently
@@ -23,12 +23,15 @@ public class SHttpErrorResponse {
     // String headers;
 
     /** Craft a response from the HTTP Status Code. */
-    public SHttpErrorResponse(int statusCode) {
+    public SHttpStatusResponse(int statusCode) {
         this.version = "HTTP/1.1";
         this.status = statusCode;
         this.server = "SSProxy";
 
         switch (status) {
+            case 200:
+                statusMessage = "OK";
+                break;
             case 400: // when headers are not properly formatted
                 statusMessage = "Bad request";
                 break;
@@ -66,25 +69,37 @@ public class SHttpErrorResponse {
     public String toString() {
         String res = "";
         res = version + " " + status + " " + statusMessage + CRLF;
-        res += "Via: " + server + CRLF;
+        res += "Server: " + server + CRLF; // Proxy-agent
         // res += headers;
-        res += "Content-Type: text/html;" + CRLF;
-        res += "Content-Length: 10" + CRLF;
-        res += "Connection: close" + CRLF;
         res += CRLF;
-        res += "\n<html>\nError: " + status + "\n</html>";
 
         return res;
     }
 
-    public void send(Socket host) {
+    public Socket send(Socket host) {
         try {
             // Write response to host.
             DataOutputStream toClient = new DataOutputStream(host.getOutputStream());
             toClient.writeBytes(toString());
-            host.close();
         } catch (IOException e) {
             System.out.println("Error writing response to client: " + e);
         }
+        return host;
     }
+
+    public SHttpStatusResponse setStaus(int status) {
+        this.status = status;
+        return this;
+    }
+
+    public SHttpStatusResponse setMessage(String message) {
+        this.statusMessage = message;
+        return this;
+    }
+
+    public SHttpStatusResponse setVersion(String version) {
+        this.version = version;
+        return this;
+    }
+
 }
