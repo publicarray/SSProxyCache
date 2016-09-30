@@ -104,7 +104,7 @@ public class HttpRequest {
         return req;
     }
 
-    HttpResponse send(Socket host) {
+    HttpResponse send() {
         // send message/request to server
         Socket server;
         try {
@@ -114,24 +114,21 @@ public class HttpRequest {
         } catch (UnknownHostException e) {
             System.out.println("Unknown host: " + getHost());
             System.out.println(e);
-            // return new SHttpStatusResponse(404);
-            return null;
+            return new HttpResponse(404);
         } catch (IOException e) {
             System.out.println("Error writing request to server: " + e);
-            // return new SHttpStatusResponse(500);
-            return null;
+            return new HttpResponse(500);
         }
 
         // handle response from server
         try {
             DataInputStream fromServer = new DataInputStream(server.getInputStream());
             HttpResponse response = new HttpResponse(fromServer);
-            host.close();
+            server.close();
             return response;
         } catch (IOException e) {
             System.out.println("Error reading response from server: " + e);
-            // return new SHttpStatusResponse(520);
-            return null;
+            return new HttpResponse(520);
         }
     }
 }

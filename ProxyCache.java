@@ -46,10 +46,6 @@ public class ProxyCache {
             BufferedReader fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
             request = new HttpRequest(fromClient);
             System.out.println("---> Request --->\n" + request.toString()); // Debug
-            if ((errorCode = request.getError()) != 0) { // check for error
-                new HttpResponse(errorCode).send(client).close(); // craft and send a response
-                return;
-            }
         } catch (IOException e) {
             System.out.println("Error reading request from client: " + e);
             new HttpResponse(400).send(client);
@@ -66,39 +62,11 @@ public class ProxyCache {
         } else if (!request.method.equals("CONNECT")) { // handle requests except special case of CONNECT
 
             /* Send request to server */
-            try {
-                server = new Socket(request.getHost(), request.getPort());
-                DataOutputStream toServer = new DataOutputStream(server.getOutputStream());
-                toServer.writeBytes(request.toString());
-            } catch (UnknownHostException e) {
-                System.out.println("Unknown host: " + request.getHost());
-                System.out.println(e);
-                new HttpResponse(404).send(client);
-                return;
-            } catch (IOException e) {
-                System.out.println("Error writing request to server: " + e);
-                new HttpResponse(500).send(client);
-                return;
-            }
+            response = request.send();
 
             /* Read response and forward it to client */
-            try {
-                DataInputStream fromServer = new DataInputStream(server.getInputStream());
-                response = new HttpResponse(fromServer);
-                // if ((errorCode = response.getError()) != 0) { // check for error
-                //     errorResponse = new HttpResponse(errorCode);
-                //     errorResponse.send(client);
-                //     return;
-                // }
-
-                // Save response to cache
-                cache.put(key, response);
-                System.out.println("<--- Response <--- \n" + response.toString()); // Debug
-                server.close();
-            } catch (IOException e) {
-                System.out.println("Error reading response from server: " + e);
-                new HttpResponse(520).send(client);
-            }
+            cache.put(key, response);// Save response to cache
+            System.out.println("<--- Response <--- \n" + response.toString()); // Debug
         } // end else
 
         // http://stackoverflow.com/questions/16358589/implementing-a-simple-https-proxy-application-with-java
