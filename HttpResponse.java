@@ -10,11 +10,12 @@ public class HttpResponse {
     /** How big is the buffer used for reading the object */
     final static int BUF_SIZE = 8192;
     /** Reply status and headers */
-    int error = 0;
-    String version;
-    int status;
+    String version; // HTTP version, part of statusLine
+    int status; // HTTP status code, part of statusLine
+    String statusMessage; // part of statusLine
     String statusLine = "";
-    String headers = "";
+    String proxy = "SSProxy"; // self advertising + it helps to identify requests that have passed through the proxy
+    String headers = ""; // all headers, excluding the statusLine
     Date lastModified;
     Date expires;
     String etag;
@@ -36,6 +37,12 @@ public class HttpResponse {
             while (line != null && line.length() != 0) { // line != null to medigate java.lang.NullPointerException
                 if (!gotStatusLine) {
                     statusLine = line;
+                    String[] tmp = line.split(" ", 3);
+                    if (tmp.length == 3) {
+                        this.version = tmp[0];
+                        this.status = Integer.parseInt(tmp[1]);
+                        this.statusMessage = tmp[2];
+                    }
                     gotStatusLine = true;
                 } else {
                     headers += line + CRLF;
@@ -47,8 +54,6 @@ public class HttpResponse {
                  * header "Content-Length", others return
                  * "Content-length". You need to check for both
                  * here. */
-                // if (line.startsWith("Content-Length") ||
-                    // line.startsWith("Content-length")) {
                 if (line.toLowerCase(Locale.ROOT).startsWith("content-length")) {
                     String[] tmp = line.split(" ");
                     length = Integer.parseInt(tmp[1]);
@@ -56,21 +61,17 @@ public class HttpResponse {
                 else if (line.toLowerCase(Locale.ROOT).startsWith("last-modified")) {
                     String[] tmp = line.split(" ", 2);
                     lastModified = toDate(tmp[1]);
-                    // System.out.println("parsed date: " + lastModified.toString());
                 } else if (line.toLowerCase(Locale.ROOT).startsWith("expires")) {
                     String[] tmp = line.split(" ", 2);
                     expires = toDate(tmp[1]);
-                    // System.out.println("parsed date: " + expires.toString());
                 }  else if (line.toLowerCase(Locale.ROOT).startsWith("etag")) {
                     String[] tmp = line.split(" ", 2);
                     etag = tmp[1];
-                    System.out.println("etag: " + etag);
                 }
 
                 line = fromServer.readLine();
             }
         } catch (IOException e) {
-            // error = 500;
             System.out.println("Error reading headers from server: " + e);
             return;
         }
@@ -111,6 +112,66 @@ public class HttpResponse {
         }
     }
 
+    // constructor for HTTP status codes
+    public HttpResponse(int statusCode) {
+        this.version = "HTTP/1.1";
+        this.status = statusCode;
+
+        switch (status) {
+            case 200:
+                statusMessage = "OK";
+                break;
+            case 400: // when headers are not properly formatted
+                statusMessage = "Bad request";
+                break;
+            case 404:
+                statusMessage = "Not found";
+                break;
+            case 405:
+                statusMessage = "Method not allowed";
+                break;
+            case 500:
+                statusMessage = "Internal server error";
+                break;
+            case 501: // for methods that are not implemented
+                statusMessage = "Not implemented";
+                break;
+            case 505: // for http/2
+                statusMessage = "HTTP version not supported";
+                break;
+            case 520:
+                statusMessage = "Unknown Error";
+                // used by Microsoft and CloudFlare as a "catch-all" response
+                // for when the origin server returns something unexpected
+                // or something that is not tolerated/interpreted.
+                break;
+            default:
+                System.out.println("Invalid HTTP status code");
+                status = 500;
+                statusMessage = "Internal server error";
+        }
+        this.statusLine = this.version + " " + this.status + " " + this.statusMessage;
+    }
+
+    public HttpResponse setStaus(int status) {
+        this.status = status;
+        return this;
+    }
+
+    public HttpResponse setMessage(String message) {
+        this.statusMessage = message;
+        return this;
+    }
+
+    public HttpResponse setVersion(String version) {
+        this.version = version;
+        return this;
+    }
+
+    public byte[] getBody() {
+        return body.toByteArray();
+    }
+
     /**
      * Convert response into a string for easy re-sending. Only
      * converts the response headers, body is not converted to a
@@ -118,16 +179,24 @@ public class HttpResponse {
      */
     public String toString() {
         String res = "";
-
         res = statusLine + CRLF;
         res += headers;
+        res += "X-Proxy-Agent: " + proxy + CRLF;
         res += CRLF;
 
         return res;
     }
 
-    public byte[] getBody() {
-        return body.toByteArray();
+    // send response to a host (generally the client)
+    public Socket send(Socket host) {
+        try {
+            // Write response to host.
+            DataOutputStream toClient = new DataOutputStream(host.getOutputStream());
+            toClient.writeBytes(toString());
+        } catch (IOException e) {
+            System.out.println("Error writing response to client: " + e);
+        }
+        return host;
     }
 
     private Date toDate(String dateStr, String format) {
@@ -153,8 +222,8 @@ public class HttpResponse {
         }
 
         // System.out.println(now.toString() + ", " + lastModified.toString() + ", " + expires.toString());
-        //etag
-        //last modified
-        return true; // for now
+        // TODO: etag
+        // TODO: last modified
+        return true; // assume as valid for now.
     }
 }

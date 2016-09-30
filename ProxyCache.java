@@ -24,7 +24,7 @@ public class ProxyCache {
 
     public static int ifErrorSend(int errorCode, Socket client) {
         if (errorCode != 0) {
-            SHttpStatusResponse errorResponse = new SHttpStatusResponse(errorCode);
+            HttpResponse errorResponse = new HttpResponse(errorCode);
             errorResponse.send(client);
             return 1;
         }
@@ -47,12 +47,12 @@ public class ProxyCache {
             request = new HttpRequest(fromClient);
             System.out.println("---> Request --->\n" + request.toString()); // Debug
             if ((errorCode = request.getError()) != 0) { // check for error
-                new SHttpStatusResponse(errorCode).send(client).close(); // craft and send a response
+                new HttpResponse(errorCode).send(client).close(); // craft and send a response
                 return;
             }
         } catch (IOException e) {
             System.out.println("Error reading request from client: " + e);
-            new SHttpStatusResponse(400).send(client);
+            new HttpResponse(400).send(client);
             return;
         }
 
@@ -73,11 +73,11 @@ public class ProxyCache {
             } catch (UnknownHostException e) {
                 System.out.println("Unknown host: " + request.getHost());
                 System.out.println(e);
-                new SHttpStatusResponse(404).send(client);
+                new HttpResponse(404).send(client);
                 return;
             } catch (IOException e) {
                 System.out.println("Error writing request to server: " + e);
-                new SHttpStatusResponse(500).send(client);
+                new HttpResponse(500).send(client);
                 return;
             }
 
@@ -86,7 +86,7 @@ public class ProxyCache {
                 DataInputStream fromServer = new DataInputStream(server.getInputStream());
                 response = new HttpResponse(fromServer);
                 // if ((errorCode = response.getError()) != 0) { // check for error
-                //     errorResponse = new SHttpStatusResponse(errorCode);
+                //     errorResponse = new HttpResponse(errorCode);
                 //     errorResponse.send(client);
                 //     return;
                 // }
@@ -97,7 +97,7 @@ public class ProxyCache {
                 server.close();
             } catch (IOException e) {
                 System.out.println("Error reading response from server: " + e);
-                new SHttpStatusResponse(520).send(client);
+                new HttpResponse(520).send(client);
             }
         } // end else
 
@@ -111,7 +111,7 @@ public class ProxyCache {
                 OutputStream toClient = client.getOutputStream();
                 InputStream fromServer = server.getInputStream();
                 OutputStream toServer = server.getOutputStream();
-                new SHttpStatusResponse(200).setMessage("Connection established").setVersion("HTTP/1.0").send(client);
+                new HttpResponse(200).setMessage("Connection established").setVersion("HTTP/1.0").send(client);
 
                 // request
                 while (true) {
@@ -133,11 +133,11 @@ public class ProxyCache {
             } catch (UnknownHostException e) {
                 System.out.println("Unknown host: " + request.getHost());
                 System.out.println(e);
-                new SHttpStatusResponse(404).send(client);
+                new HttpResponse(404).send(client);
                 return;
             } catch (IOException e) {
                 System.out.println("Error writing request to server: " + e);
-                new SHttpStatusResponse(500).send(client);
+                new HttpResponse(500).send(client);
                 return;
             }
         } else {
@@ -149,7 +149,7 @@ public class ProxyCache {
                 client.close();
             } catch (IOException e) {
                 System.out.println("Error writing response to client: " + e);
-                // new SHttpStatusResponse(500).send(client);
+                // new HttpResponse(500).send(client);
             }
         }
     }
