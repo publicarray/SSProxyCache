@@ -1,6 +1,9 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
+
 
 public class HttpResponse {
     final static String CRLF = "\r\n";
@@ -12,6 +15,10 @@ public class HttpResponse {
     int status;
     String statusLine = "";
     String headers = "";
+    Date lastModified;
+    Date expires;
+    String etag;
+
     /* Body of reply */
     ByteArrayOutputStream body = new ByteArrayOutputStream();
 
@@ -25,7 +32,7 @@ public class HttpResponse {
         try {
 
             String line = fromServer.readLine();
-
+            // Parse HTTP headers
             while (line != null && line.length() != 0) { // line != null to medigate java.lang.NullPointerException
                 if (!gotStatusLine) {
                     statusLine = line;
@@ -40,11 +47,26 @@ public class HttpResponse {
                  * header "Content-Length", others return
                  * "Content-length". You need to check for both
                  * here. */
-                if (line.startsWith("Content-Length") ||
-                    line.startsWith("Content-length")) {
+                // if (line.startsWith("Content-Length") ||
+                    // line.startsWith("Content-length")) {
+                if (line.toLowerCase(Locale.ROOT).startsWith("content-length")) {
                     String[] tmp = line.split(" ");
                     length = Integer.parseInt(tmp[1]);
                 }
+                else if (line.toLowerCase(Locale.ROOT).startsWith("last-modified")) {
+                    String[] tmp = line.split(" ", 2);
+                    lastModified = toDate(tmp[1]);
+                    // System.out.println("parsed date: " + lastModified.toString());
+                } else if (line.toLowerCase(Locale.ROOT).startsWith("expires")) {
+                    String[] tmp = line.split(" ", 2);
+                    expires = toDate(tmp[1]);
+                    // System.out.println("parsed date: " + expires.toString());
+                }  else if (line.toLowerCase(Locale.ROOT).startsWith("etag")) {
+                    String[] tmp = line.split(" ", 2);
+                    etag = tmp[1];
+                    System.out.println("etag: " + etag);
+                }
+
                 line = fromServer.readLine();
             }
         } catch (IOException e) {
@@ -106,5 +128,33 @@ public class HttpResponse {
 
     public byte[] getBody() {
         return body.toByteArray();
+    }
+
+    private Date toDate(String dateStr, String format) {
+        try {
+            SimpleDateFormat inFormat = new SimpleDateFormat(format);
+            return inFormat.parse(dateStr);
+        } catch (ParseException e) {
+            System.out.println("Parse date error: " + e + " -- at position:" + e.getErrorOffset());
+        }
+        return null;
+    }
+
+    private Date toDate(String dateStr) {
+        String format = "E, dd MMM yyyy HH:mm:ss z"; // Mon, 13 Jun 2016 21:06:31 GMT
+        return toDate(dateStr, format);
+    }
+
+    // check if response is still valid
+    public boolean isValid() {
+        Date now = new Date(); // get current date time
+        if (lastModified != null || expires != null) {
+            return now.after(lastModified) && now.before(expires); // no web request is needed
+        }
+
+        // System.out.println(now.toString() + ", " + lastModified.toString() + ", " + expires.toString());
+        //etag
+        //last modified
+        return true; // for now
     }
 }

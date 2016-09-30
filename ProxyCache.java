@@ -59,9 +59,10 @@ public class ProxyCache {
         // create key
         String key = request.getURL();
         // Check if key is in cache
-        if ((response = cache.get(key)) != null) {
-            // response is set
-            System.out.println("Retrieved " + key + " from cache.");
+        if ((response = cache.get(key)) != null && response.isValid()) { // get item from cache if the cache is still fresh
+            // response is set and valid
+            System.out.println("Retrieved " + key);
+            System.out.println("Is valid? " + response.isValid());
         } else if (!request.method.equals("CONNECT")) { // handle requests except special case of CONNECT
 
             /* Send request to server */
@@ -101,6 +102,7 @@ public class ProxyCache {
         } // end else
 
         // http://stackoverflow.com/questions/16358589/implementing-a-simple-https-proxy-application-with-java
+        // http://stackoverflow.com/questions/18273703/tunneling-two-socket-client-in-java#18274109
         if (request.method.equals("CONNECT")) {
             try {
                 System.out.println("CONNECT found! Tunnelling connection.");
@@ -143,7 +145,6 @@ public class ProxyCache {
                 /* Write response to client. First headers, then body */
                 DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
                 toClient.writeBytes(response.toString()); // headers
-                // toClient.write(response.getBody()); // body
                 response.body.writeTo(toClient); // body
                 client.close();
             } catch (IOException e) {
