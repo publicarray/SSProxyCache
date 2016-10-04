@@ -217,8 +217,7 @@ public class HttpResponse {
     // check if response is still valid
     public boolean isValid() {
         Date now = new Date(); // get current date time
-        if (lastModified != null || expires != null) {
-            return now.after(lastModified) && now.before(expires); // no web request is needed
+        if (lastModified != null && expires != null) {
         }
 
         // System.out.println(now.toString() + ", " + lastModified.toString() + ", " + expires.toString());
