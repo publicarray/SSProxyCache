@@ -114,8 +114,8 @@ public class HttpResponse {
 
     // constructor for HTTP status codes
     public HttpResponse(int statusCode) {
-        this.version = "HTTP/1.1";
-        this.status = statusCode;
+        version = "HTTP/1.1";
+        status = statusCode;
 
         switch (status) {
             case 200:
@@ -150,7 +150,9 @@ public class HttpResponse {
                 status = 500;
                 statusMessage = "Internal server error";
         }
-        this.statusLine = this.version + " " + this.status + " " + this.statusMessage;
+        statusLine = version + " " + status + " " + statusMessage;
+        String bodyStr = status + " " + statusMessage;
+        body.write(bodyStr.getBytes(), 0, bodyStr.length());
     }
 
     public HttpResponse setStaus(int status) {
