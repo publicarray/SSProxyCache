@@ -15,7 +15,7 @@ public class ProxyCache {
         port = p;
         cache = new SCache();
         try {
-            socket = new ServerSocket(port);
+            socket = new ServerSocket(p);
         } catch (IOException e) {
             System.out.println("Error creating socket: " + e);
             System.exit(-1);
@@ -147,7 +147,8 @@ public class ProxyCache {
         while (true) {
             try {
                 client = socket.accept();
-                handle(client);
+                new Thread(new ProxyThread(client)).start();
+                // new ProxyThread(client);
             } catch (IOException e) {
                 System.out.println("Error reading request from client: " + e);
                 /* Definitely cannot continue processing this request,
@@ -156,4 +157,20 @@ public class ProxyCache {
             }
         }
     }
+}
+
+
+
+class ProxyThread extends Thread {
+    Socket client;
+
+    ProxyThread(Socket client) {
+        this.client = client;
+    }
+
+    public void run() {
+        ProxyCache.handle(client);
+        // System.out.println("Handling client from thread! " + client.toString());
+    }
+
 }
