@@ -34,10 +34,6 @@ public class HttpRequest {
 
         System.out.println("URL is: " + URL);
 
-        if (!(method.equals("GET") || method.equals("CONNECT"))) {
-            error = 501;
-            System.out.println("Error: Method not GET or CONNECT");
-        }
         try {
             String line = from.readLine();
             while (line.length() != 0) {
@@ -57,6 +53,10 @@ public class HttpRequest {
                 }
                 line = from.readLine();
             }
+
+            // TODO: get POST parameters
+            //
+            //
         } catch (IOException e) {
             error = 400;
             System.out.println("Error reading from socket: " + e);
@@ -113,10 +113,9 @@ public class HttpRequest {
             toServer.writeBytes(toString());
         } catch (UnknownHostException e) {
             System.out.println("Unknown host: " + getHost());
-            System.out.println(e);
             return new HttpResponse(404);
         } catch (IOException e) {
-            System.out.println("Error writing request to server: " + e);
+            System.out.println("HttpRequest.java - Error writing request to server: " + e);
             return new HttpResponse(500);
         }
 
@@ -127,7 +126,7 @@ public class HttpRequest {
             server.close();
             return response;
         } catch (IOException e) {
-            System.out.println("Error reading response from server: " + e);
+            System.out.println("HttpRequest.java - Error reading response from server: " + e);
             return new HttpResponse(520);
         }
     }

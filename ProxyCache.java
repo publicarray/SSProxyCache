@@ -49,66 +49,25 @@ public class ProxyCache {
         } catch (IOException e) {
             System.out.println("Error reading request from client: " + e);
             new HttpResponse(400).send(client);
-            return;
         }
 
-        // create key
-        String key = request.getURL();
-        // Check if key is in cache
-        if ((response = cache.get(key)) != null && response.isValid()) { // get item from cache if the cache is still fresh
-            // response is set and valid
-            System.out.println("Retrieved " + key);
-            System.out.println("Is valid? " + response.isValid());
-        } else if (!request.method.equals("CONNECT")) { // handle requests except special case of CONNECT
+        if (request.method.equals("GET")) { // Only GET requests are cached
+            // create key
+            String key = request.getURL();
+            // Check if key is in cache
+            if ((response = cache.get(key)) != null && response.isValid()) { // get item from cache if the cache is still fresh
+                // response is set and valid
+                System.out.println("Retrieved " + key);
+                System.out.println("Is valid? " + response.isValid());
+            } else { // handle requests
+                    /* Send request to server */
+                    response = request.send();
 
-            /* Send request to server */
-            response = request.send();
-
-            /* Read response and forward it to client */
-            cache.put(key, response);// Save response to cache
-            System.out.println("<--- Response <--- \n" + response.toString()); // Debug
-        } // end else
-
-        // http://stackoverflow.com/questions/16358589/implementing-a-simple-https-proxy-application-with-java
-        // http://stackoverflow.com/questions/18273703/tunneling-two-socket-client-in-java#18274109
-        if (request.method.equals("CONNECT")) {
-            try {
-                System.out.println("CONNECT found! Tunnelling connection.");
-                server = new Socket(request.getHost(), request.getPort());
-                InputStream fromClient = client.getInputStream();
-                OutputStream toClient = client.getOutputStream();
-                InputStream fromServer = server.getInputStream();
-                OutputStream toServer = server.getOutputStream();
-                new HttpResponse(200).setMessage("Connection established").setVersion("HTTP/1.0").send(client);
-
-                // request
-                while (true) {
-                    for (int i = 0; (i = fromClient.read()) != -1; i++) {
-                        toServer.write(i);
-                        if (fromClient.available() == 0) {
-                            break;
-                        }
-                    }
-                    // response
-                    for (int i = 0; (i = fromServer.read()) != -1; i++) {
-                        toClient.write(i);
-                        if (fromServer.available() == 0) {
-                            break;
-                        }
-                    }
-                }
-                // return;
-            } catch (UnknownHostException e) {
-                System.out.println("Unknown host: " + request.getHost());
-                System.out.println(e);
-                new HttpResponse(404).send(client);
-                return;
-            } catch (IOException e) {
-                System.out.println("Error writing request to server: " + e);
-                new HttpResponse(500).send(client);
-                return;
+                    /* Read response and forward it to client */
+                    cache.put(key, response);// Save response to cache
             }
-        } else {
+
+            System.out.println("<--- Response <--- \n" + response.toString()); // Debug
             try {
                 /* Write response to client. First headers, then body */
                 DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
@@ -116,9 +75,79 @@ public class ProxyCache {
                 response.body.writeTo(toClient); // body
                 client.close();
             } catch (IOException e) {
-                System.out.println("Error writing response to client: " + e);
+                System.out.println("Error writing response to client (cached): " + e);
                 // new HttpResponse(500).send(client);
             }
+        }
+
+        // http://stackoverflow.com/questions/16358589/implementing-a-simple-https-proxy-application-with-java
+        // http://stackoverflow.com/questions/18273703/tunneling-two-socket-client-in-java#18274109
+        else if (request.method.equals("CONNECT")) {
+            System.out.println("CONNECT found! Tunnelling connection.");
+            InputStream fromClient;
+            OutputStream toServer;
+            try {
+                server = new Socket(request.getHost(), request.getPort());
+                fromClient = client.getInputStream();
+                toServer = server.getOutputStream();
+                new HttpResponse(200).setMessage("Connection established").setVersion("HTTP/1.0").send(client);
+            } catch (UnknownHostException e) {
+                System.out.println("Unknown host: " + request.getHost());
+                new HttpResponse(404).send(client);
+                return;
+            } catch (IOException e) {
+                System.out.println("Error establishing connection: " + e);
+                new HttpResponse(500).send(client);
+                return;
+            }
+
+            try {
+                client.setSoTimeout(5000);
+                server.setSoTimeout(5000);
+                byte[] buffer = new byte[2048];
+                int rc = 0;
+
+                // http://stackoverflow.com/questions/31365522/java-proxy-tunnelling-https
+                Thread servertToClient = new TunnelThread(server, client);
+                new Thread(servertToClient).start(); // from server to client
+                while (!client.isClosed() && !server.isClosed() && !client.isInputShutdown() && !server.isOutputShutdown()) {
+                    while ((rc = fromClient.read(buffer)) != -1) {
+                        toServer.write(buffer, 0, rc);
+                        toServer.flush();
+                    }
+                }
+                server.close();
+                client.close();
+            } catch (SocketTimeoutException e) {
+                System.out.println("Connection Timed out " + e);
+                // EXIT HERE
+                // servertToClient.interrupt();
+                return;
+                // new HttpResponse(404).send(client);
+            } catch (IOException e) {
+                System.out.println("Error tunnelling request: " + e);
+                // new HttpResponse(500).send(client);
+                // return;
+            // } catch (InterruptedException e) {
+                // System.out.println("Thread: Interrupted" + e);
+            }
+        } else { // e.g POST, HEAD or DELETE requests
+            new HttpResponse(501).send(client);
+            return;
+            // response = request.send();
+            // System.out.println("<--- Response <--- \n" + response.toString()); // Debug
+
+            // try {
+            //     /* Write response to client. First headers, then body */
+            //     DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
+            //     toClient.writeBytes(response.toString()); // headers // broken pipe /Protocol wrong type for socket
+            //     response.body.writeTo(toClient); // body
+            //     client.close();
+            // } catch (IOException e) {
+            //     System.out.println("Error writing response to client: " + e);
+            //     e.printStackTrace();
+            //     // new HttpResponse(500).send(client);
+            // }
         }
     }
 
@@ -153,7 +182,7 @@ public class ProxyCache {
                 System.out.println("Error reading request from client: " + e);
                 /* Definitely cannot continue processing this request,
                  * so skip to next iteration of while loop. */
-            continue;
+                continue;
             }
         }
     }
@@ -172,5 +201,35 @@ class ProxyThread extends Thread {
         ProxyCache.handle(client);
         // System.out.println("Handling client from thread! " + client.toString());
     }
+}
 
+class TunnelThread extends Thread {
+    Socket server;
+    Socket client;
+
+    TunnelThread(Socket server, Socket client) {
+        this.server = server;
+        this.client = client;
+    }
+
+    public void run() {
+        int rs = 0;
+        byte[] buffer = new byte[2048];
+        try {
+            OutputStream toClient = client.getOutputStream();
+            InputStream fromServer = server.getInputStream();
+
+            while (!server.isClosed() && !client.isClosed() && !server.isInputShutdown() && !client.isOutputShutdown()) {
+                while ((rs = fromServer.read(buffer)) != -1) {
+                    toClient.write(buffer, 0, rs);
+                    toClient.flush();
+                }
+            }
+            System.out.println("thread ended normally");
+        } catch (IOException e) {
+            System.out.println("Thread: IOError: " + e);
+            interrupt();
+            // return;
+        }
+    }
 }
