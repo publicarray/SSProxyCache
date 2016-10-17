@@ -31,7 +31,7 @@ public class SCache {
         System.out.println("SCACHE: retrieved " + key + " from cache.");
 
         boolean valid = isValid(key, value);
-        System.out.println("SCACHE: Is key valid? " + valid);
+        System.out.println("SCACHE: Is fresh and valid? " + valid);
         if (!valid) { // get the new value if there is a new one
             value = cacheStore.get(key);
         }

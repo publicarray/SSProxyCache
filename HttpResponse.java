@@ -250,6 +250,6 @@ public class HttpResponse {
             Date now = new Date(); // get current date time
             return !(now.after(lastModified) && now.before(expires)); // no web request is needed
         }
-        return true;
+        return false;
     }
 }
