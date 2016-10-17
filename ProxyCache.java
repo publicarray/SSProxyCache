@@ -44,6 +44,7 @@ public class ProxyCache {
         /* Read request */
         try {
             BufferedReader fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
+            System.out.println("\n**** New Request ****");
             request = new HttpRequest(fromClient);
             System.out.println("---> Request --->\n" + request.toString()); // Debug
         } catch (IOException e) {
@@ -52,19 +53,17 @@ public class ProxyCache {
         }
 
         if (request.method.equals("GET")) { // Only GET requests are cached
-            // create key
-            String key = request.getURL();
             // Check if key is in cache
-            if ((response = cache.get(key)) != null && response.isValid()) { // get item from cache if the cache is still fresh
+            if ((response = cache.get(request.getURL())) != null) {// && response.isValid()) { // get item from cache if the cache is still fresh
                 // response is set and valid
-                System.out.println("Retrieved " + key);
-                System.out.println("Is valid? " + response.isValid());
+                // System.out.println("Retrieved " + request.getURL());
+                // System.out.println("Is valid? " + cache.isValid(request));
             } else { // handle requests
                     /* Send request to server */
                     response = request.send();
 
                     /* Read response and forward it to client */
-                    cache.put(key, response);// Save response to cache
+                    cache.put(request.getURL(), response);// Save response to cache
             }
 
             System.out.println("<--- Response <--- \n" + response.toString()); // Debug
@@ -83,7 +82,7 @@ public class ProxyCache {
         // http://stackoverflow.com/questions/16358589/implementing-a-simple-https-proxy-application-with-java
         // http://stackoverflow.com/questions/18273703/tunneling-two-socket-client-in-java#18274109
         else if (request.method.equals("CONNECT")) {
-            System.out.println("CONNECT found! Tunnelling connection.");
+            System.out.println("CONNECT found! Tunnelling HTTPS connection.");
             InputStream fromClient;
             OutputStream toServer;
             try {
@@ -102,8 +101,8 @@ public class ProxyCache {
             }
 
             try {
-                client.setSoTimeout(5000);
-                server.setSoTimeout(5000);
+                client.setSoTimeout(3000);
+                server.setSoTimeout(3000);
                 byte[] buffer = new byte[2048];
                 int rc = 0;
 

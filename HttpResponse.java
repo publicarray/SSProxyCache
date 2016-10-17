@@ -19,7 +19,6 @@ public class HttpResponse {
     Date lastModified;
     Date expires;
     String etag;
-
     /* Body of reply */
     ByteArrayOutputStream body = new ByteArrayOutputStream();
 
@@ -105,6 +104,21 @@ public class HttpResponse {
                 body.write(buf, 0, res);
                 bytesRead += res;
             }
+
+
+            // http://codereview.stackexchange.com/questions/49746/implement-http-server-with-persistent-connection
+
+            // http://stackoverflow.com/questions/3870847/how-to-convert-the-datainputstream-to-the-string-in-java
+            //http://stackoverflow.com/questions/13115857/http-socket-programming-java
+            //
+            //http://stackoverflow.com/questions/7696358/server-socket-file-transfer
+            //http://stackoverflow.com/questions/13555668/java-send-file-using-sockets
+            // http://stackoverflow.com/questions/10475898/receive-byte-using-bytearrayinputstream-from-a-socket
+            // http://stackoverflow.com/questions/9520911/java-sending-and-receiving-file-byte-over-sockets
+            // http://stackoverflow.com/questions/1176135/java-socket-send-receive-byte-array
+            // http://stackoverflow.com/questions/8274966/reading-a-byte-array-from-socket
+            // TSL -> http://stackoverflow.com/questions/18787419/ssl-socket-connection#18790838
+
         } catch (IOException e) {
             // error = 500;
             System.out.println("Error reading response body: " + e);
@@ -153,6 +167,19 @@ public class HttpResponse {
         statusLine = version + " " + status + " " + statusMessage;
         String bodyStr = status + " " + statusMessage;
         body.write(bodyStr.getBytes(), 0, bodyStr.length());
+    }
+
+    // copy constructor
+    public HttpResponse (HttpResponse other) {
+        this.version = other.version;
+        this.status = other.status;
+        this.statusMessage = other.statusMessage;
+        this.statusLine = other.statusLine;
+        this.headers = other.headers;
+        this.lastModified = other.lastModified;
+        this.expires = other.expires;
+        this.etag = other.etag;
+        this.body = other.body;
     }
 
     public HttpResponse setStaus(int status) {
@@ -204,6 +231,7 @@ public class HttpResponse {
     private Date toDate(String dateStr, String format) {
         try {
             SimpleDateFormat inFormat = new SimpleDateFormat(format);
+            inFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
             return inFormat.parse(dateStr);
         } catch (ParseException e) {
             System.out.println("Parse date error: " + e + " -- at position:" + e.getErrorOffset());
@@ -216,15 +244,12 @@ public class HttpResponse {
         return toDate(dateStr, format);
     }
 
-    // check if response is still valid
-    public boolean isValid() {
-        Date now = new Date(); // get current date time
+    // check if response is still valid using the (now old) expires header
+    public boolean isExpired() {
         if (lastModified != null && expires != null) {
+            Date now = new Date(); // get current date time
+            return !(now.after(lastModified) && now.before(expires)); // no web request is needed
         }
-
-        // System.out.println(now.toString() + ", " + lastModified.toString() + ", " + expires.toString());
-        // TODO: etag
-        // TODO: last modified
-        return true; // assume as valid for now.
+        return true;
     }
 }

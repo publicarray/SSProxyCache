@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.text.SimpleDateFormat;
 
 public class HttpRequest {
     /** Help variables */
@@ -65,6 +66,51 @@ public class HttpRequest {
         System.out.println("Host to contact is: " + host + " at port " + port);
     }
 
+    // constructor
+    public HttpRequest(String method, String url, String version, String headers, String host, int port) {
+        this.method = method;
+        this.URL = url;
+        this.version = version;
+        this.headers = headers;
+        this.host = host;
+        this.port = port;
+        this.error = 0;
+    }
+
+    // copy constructor
+    public HttpRequest(HttpRequest other) {
+        this.method = other.method;
+        this.URL = other.URL;
+        this.version = other.version;
+        this.headers = other.headers;
+        this.host = other.host;
+        this.port = other.port;
+        this.error = other.error;
+    }
+
+    public HttpResponse askServerIfvalid(Date lastModified, String etag) {
+        if (lastModified == null || etag == null || etag.isEmpty()) {
+            return null;
+        }
+
+        // User-Agent: SSProxyCache/1 (https://github.com/publicarray/SSProxyCache)
+        // headers = "User-Agent: SSProxyCache/1.0\r\n";
+        headers = "";
+
+        if (!etag.isEmpty()) {
+            // If-None-Match: "07bb743de42c7918a1a47fd61c6aa9c7:1469533683"\r\n
+            headers += "If-None-Match: " + etag + CRLF;
+        } if (lastModified != null) {
+            // If-Modified-Since: Thu, 13 Oct 2016 00:36:43 GMT\r\n
+            SimpleDateFormat dateFormat = new SimpleDateFormat ("E, dd MMM yyyy HH:mm:ss z");
+            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+            headers += "If-Modified-Since: " + dateFormat.format(lastModified) + CRLF;
+        }
+
+        headers += "Host: " + host + CRLF;
+        return send();
+    }
+
     public int getError() {
         return error;
     }
@@ -74,9 +120,17 @@ public class HttpRequest {
         return host;
     }
 
+    public void setHost(String host) {
+        this.host = host;
+    }
+
     /** Return port for server */
     public int getPort() {
         return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 
     /** Return URL to connect to */
