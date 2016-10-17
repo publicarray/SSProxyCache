@@ -40,7 +40,7 @@ public class SCache {
 
     // check if response is still valid
     public boolean isValid(String requestURL, HttpResponse response) {
-        if (!response.isExpired()) {
+        if (!response.isExpired()) { // TODO: add command line flag
             System.out.println("SCACHE: response has not expired");
             return true;
         }
@@ -52,7 +52,7 @@ public class SCache {
 
         HttpResponse newResponse = request.askServerIfvalid(response.lastModified, response.etag); // ask severer
         if (newResponse == null) { // if error
-            return true; // Todo: for debugging
+            return true; // use the cached response if new response has an unrecoverable error.
         }
         // HttpResponse r = new HttpRequest(request, response.lastModified, response.etag).send(); // ask server
         if (newResponse.status == 304) { // Not modified, so still valid
