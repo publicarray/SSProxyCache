@@ -4,6 +4,13 @@ import java.util.*;
 import java.text.SimpleDateFormat;
 import static SSHelpers.Util.*;
 
+/**
+ * This class contains the needed information (host, port number and all Http headers) for a typical Http Request.
+ *
+ * @author      Modified by: Sebastian Schmidt
+ * @version     1.0 2016-10-18
+ * @since       1.0
+ */
 public class HttpRequest {
     /** Help variables */
     final static String CRLF = "\r\n";
@@ -18,7 +25,14 @@ public class HttpRequest {
     private int port;
     private int error;
 
-    /** Create HttpRequest by reading it from the client socket */
+    /**
+     * Creates a HttpRequest by reading it from the client socket.
+     * The constructor attempts to parse the content form the client.
+     * If there is a error in parsing the client will receive a
+     * 400 (Bad request) error indicating that the request was malformed.
+     * @param  from The content stream from a socket connection.
+     * @return      A new HttpRequest.
+     */
     public HttpRequest(BufferedReader from) {
         error = 0;
         String firstLine = "";
@@ -57,17 +71,25 @@ public class HttpRequest {
             }
 
             // TODO: get POST parameters
-            //
-            //
-        } catch (IOException e) {
+
+        } catch (Exception e) {
             error = 400;
-            System.out.println("Error reading from socket: " + e);
+            System.out.println("Error reading from client socket: " + e);
             return;
         }
         System.out.println("Host to contact is: " + host + " at port " + port);
     }
 
-    // constructor
+    /**
+     * Constructs a HttpRequest given the required variables
+     * @param  method  The http method E.g GET or POST
+     * @param  url     The location of the resource E.g. /example.html
+     * @param  version The Http protocol version, usually it is HTTP/1.1
+     * @param  headers Any optional http headers. If you don't want to add any use an empty string ("").
+     * @param  host    The hostname of the server where the request is send to E.g. example.com
+     * @param  port    The port number used for the webs server E.g. 80
+     * @return         A HttpRequet object
+     */
     public HttpRequest(String method, String url, String version, String headers, String host, int port) {
         this.method = method;
         this.URL = url;
@@ -78,7 +100,11 @@ public class HttpRequest {
         this.error = 0;
     }
 
-    // copy constructor
+    /**
+     * Copy constructor
+     * @param  other An existing HttpRequest to create the copy from
+     * @return       A deep copy of the 'other' HttpRequest
+     */
     public HttpRequest(HttpRequest other) {
         this.method = other.method;
         this.URL = other.URL;
