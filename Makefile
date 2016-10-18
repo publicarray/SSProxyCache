@@ -16,7 +16,8 @@ clean:
 docs: *.java
 	$(JDOC) $^ -d docs \
 		-windowtitle $(DOCTITLE) \
-		-doctitle $(DOCTITLE)
+		-doctitle $(DOCTITLE) \
+		-subpackages SSHelpers
 
 docs-clean:
 	$(RM) docs/*

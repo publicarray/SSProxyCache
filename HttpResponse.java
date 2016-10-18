@@ -1,9 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.*;
-import java.text.SimpleDateFormat;
-import java.text.ParseException;
-
+import static SSHelpers.Util.*;
 
 public class HttpResponse {
     final static String CRLF = "\r\n";
@@ -226,22 +224,6 @@ public class HttpResponse {
             System.out.println("Error writing response to client: " + e);
         }
         return host;
-    }
-
-    private Date toDate(String dateStr, String format) {
-        try {
-            SimpleDateFormat inFormat = new SimpleDateFormat(format);
-            inFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-            return inFormat.parse(dateStr);
-        } catch (ParseException e) {
-            System.out.println("Parse date error: " + e + " -- at position:" + e.getErrorOffset());
-        }
-        return null;
-    }
-
-    private Date toDate(String dateStr) {
-        String format = "E, dd MMM yyyy HH:mm:ss z"; // Mon, 13 Jun 2016 21:06:31 GMT
-        return toDate(dateStr, format);
     }
 
     // check if response is still valid using the (now old) expires header

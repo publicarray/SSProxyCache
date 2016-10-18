@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.text.SimpleDateFormat;
+import static SSHelpers.Util.*;
 
 public class HttpRequest {
     /** Help variables */
@@ -102,9 +103,7 @@ public class HttpRequest {
             headers += "If-None-Match: " + etag + CRLF;
         } if (lastModified != null) {
             // If-Modified-Since: Thu, 13 Oct 2016 00:36:43 GMT\r\n
-            SimpleDateFormat dateFormat = new SimpleDateFormat ("E, dd MMM yyyy HH:mm:ss z");
-            dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-            headers += "If-Modified-Since: " + dateFormat.format(lastModified) + CRLF;
+            headers += "If-Modified-Since: " + dateToString(lastModified) + CRLF;
         }
 
         headers += "Host: " + host + CRLF;
