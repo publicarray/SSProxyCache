@@ -6,7 +6,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 /**
  * A utility class containing small helper methods.
- * These methods can be used my importing the class <code>import static SSHelpers.Util.*;</code>
+ * These methods can be used my importing the class: <code>import static SSHelpers.Util.*;</code>
  *
  * @author      Sebastian Schmidt
  * @version     1.0 2016-10-18
