@@ -31,7 +31,6 @@ public class HttpRequest {
      * If there is a error in parsing the client will receive a
      * 400 (Bad request) error indicating that the request was malformed.
      * @param  from The content stream from a socket connection.
-     * @return      A new HttpRequest.
      */
     public HttpRequest(BufferedReader from) {
         error = 0;
@@ -88,7 +87,6 @@ public class HttpRequest {
      * @param  headers Any optional http headers. If you don't want to add any use an empty string ("").
      * @param  host    The hostname of the server where the request is send to E.g. example.com
      * @param  port    The port number used for the webs server E.g. 80
-     * @return         A HttpRequet object
      */
     public HttpRequest(String method, String url, String version, String headers, String host, int port) {
         this.method = method;
@@ -102,8 +100,9 @@ public class HttpRequest {
 
     /**
      * Copy constructor
-     * @param  other An existing HttpRequest to create the copy from
-     * @return       A deep copy of the 'other' HttpRequest
+     * <p>
+     * Returns a deep copy of the 'other' HttpRequest.
+     * @param  other An existing HttpRequest to create the copy from.
      */
     public HttpRequest(HttpRequest other) {
         this.method = other.method;
