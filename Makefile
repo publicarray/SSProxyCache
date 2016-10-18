@@ -1,0 +1,27 @@
+JDOC = javadoc
+JFLAGS = -Xlint:deprecation
+JC = javac
+DOCTITLE = 'SS Proxy Cache API Specification'
+
+.PHONY: *.java default clean docs
+
+default: *.class
+
+%.class: %.java
+	$(JC) $(JFLAGS) $<
+
+clean:
+	$(RM) *.class
+
+docs: docs/*
+
+docs/*: *.java
+	$(JDOC) $^ -d docs \
+		-windowtitle $(DOCTITLE) \
+		-doctitle $(DOCTITLE)
+
+docs-clean:
+	$(RM) docs/*
+
+run:
+	java ProxyCache 8031
