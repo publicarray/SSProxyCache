@@ -13,9 +13,7 @@ default: *.class
 clean:
 	$(RM) *.class
 
-docs: docs/*
-
-docs/*: *.java
+docs: *.java
 	$(JDOC) $^ -d docs \
 		-windowtitle $(DOCTITLE) \
 		-doctitle $(DOCTITLE)
