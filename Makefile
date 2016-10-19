@@ -1,4 +1,5 @@
 JDOC = javadoc
+JDOCFLAGS = -windowtitle $(DOCTITLE) -doctitle $(DOCTITLE) -subpackages SSHelpers -version -author
 JFLAGS = -Xlint:deprecation
 JC = javac
 DOCTITLE = 'SS Proxy Cache API Specification'
@@ -14,12 +15,7 @@ clean:
 	$(RM) *.class
 
 docs: *.java
-	$(JDOC) $^ -d docs \
-		-windowtitle $(DOCTITLE) \
-		-doctitle $(DOCTITLE) \
-		-subpackages SSHelpers \
-		-version \
-		-author
+	$(JDOC) $^ -d docs $(JDOCFLAGS)
 
 docs-clean:
 	$(RM) docs/*

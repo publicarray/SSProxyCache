@@ -104,19 +104,6 @@ public class HttpResponse {
             }
 
 
-            // http://codereview.stackexchange.com/questions/49746/implement-http-server-with-persistent-connection
-
-            // http://stackoverflow.com/questions/3870847/how-to-convert-the-datainputstream-to-the-string-in-java
-            //http://stackoverflow.com/questions/13115857/http-socket-programming-java
-            //
-            //http://stackoverflow.com/questions/7696358/server-socket-file-transfer
-            //http://stackoverflow.com/questions/13555668/java-send-file-using-sockets
-            // http://stackoverflow.com/questions/10475898/receive-byte-using-bytearrayinputstream-from-a-socket
-            // http://stackoverflow.com/questions/9520911/java-sending-and-receiving-file-byte-over-sockets
-            // http://stackoverflow.com/questions/1176135/java-socket-send-receive-byte-array
-            // http://stackoverflow.com/questions/8274966/reading-a-byte-array-from-socket
-            // TSL -> http://stackoverflow.com/questions/18787419/ssl-socket-connection#18790838
-
         } catch (IOException e) {
             // error = 500;
             System.out.println("Error reading response body: " + e);
