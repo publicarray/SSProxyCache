@@ -69,7 +69,7 @@ public class SCache {
      * @return            isValid? as in is the item in the cache fresh?
      */
     public boolean isValid(String requestURL, HttpResponse response) {
-        if (!response.isExpired()) { // TODO: add command line flag
+        if (ProxyCache.expires && !response.isExpired()) { // TODO: add command line flag
             System.out.println("SCACHE: response has not expired");
             return true;
         }

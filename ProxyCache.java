@@ -3,6 +3,9 @@ import java.io.*;
 import java.util.*;
 
 public class ProxyCache {
+    private static boolean secure = false;
+    public static boolean expires = false;
+
     /** Port for the proxy */
     private static int port;
     /** Socket for client connections */
@@ -81,7 +84,7 @@ public class ProxyCache {
 
         // http://stackoverflow.com/questions/16358589/implementing-a-simple-https-proxy-application-with-java
         // http://stackoverflow.com/questions/18273703/tunneling-two-socket-client-in-java#18274109
-        else if (request.method.equals("CONNECT")) {
+        else if (secure && request.method.equals("CONNECT")) {
             System.out.println("CONNECT found! Tunnelling HTTPS connection.");
             InputStream fromClient;
             OutputStream toServer;
@@ -155,6 +158,20 @@ public class ProxyCache {
 
     /** Read command line arguments and start proxy */
     public static void main(String args[]) {
+        for (String argument: args) { // http://java.about.com/od/javasyntax/a/Using-Command-Line-Arguments.htm
+            if(argument.equals("-s") || argument.equals("--secure")) {
+                // proxy secure HTTPS/TLS connections (experimental as it can course 100% CPU usage)
+                secure = true;
+                System.out.print("Proxy HTTPS/TLS connections. (experimental as it can course 100% CPU usage)\n");
+
+            }
+            if(argument.equals("-e") || argument.equals("--expires")) {
+                // when validating the cache also check the expires header, this can reduce the number of requests out to the web.
+                expires = true;
+                System.out.print("Check expires headers when checking the freshniss of an object in the cache.\n");
+            }
+        }
+
         int myPort = 0;
 
         try {
