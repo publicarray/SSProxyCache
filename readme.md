@@ -28,6 +28,12 @@ java ProxyCache 5001
 
 Next change your browsers or system proxy settings and start browsing the web.
 
+### Commandline flags
+
+* -a, --secure
+    * Proxy HTTPS/TLS connections. (experimental as it can course 100% CPU usage)
+* -e --expires
+    * Check expires header when checking the freshness of an object in the cache.
 ## Generating JavaDocs
 
 ### With make
