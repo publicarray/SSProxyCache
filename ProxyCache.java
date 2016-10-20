@@ -163,7 +163,7 @@ public class ProxyCache {
         try {
             myPort = Integer.parseInt(args[0]);
         } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("Usage: ProxyCache <Port Number> [args]\nArguments:\n  -s, --secure    Proxy HTTPS/TLS (experimental, can use 100% CPU)\n  -e, --expires   Check expires headers");
+            System.out.println("Usage: ProxyCache <Port Number> [args]\nArguments:\n  -s, --secure    Proxy HTTPS/TLS (experimental, can use 100% CPU)\n  -e, --expires   Check expires header");
             // System.out.println("Need port number as argument");
             System.exit(-1);
         } catch (NumberFormatException e) {
