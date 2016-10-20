@@ -32,15 +32,6 @@ public class ProxyCache {
         }
     }
 
-    public static int ifErrorSend(int errorCode, Socket client) {
-        if (errorCode != 0) {
-            HttpResponse errorResponse = new HttpResponse(errorCode);
-            errorResponse.send(client);
-            return 1;
-        }
-        return 0;
-    }
-
     public static void handle(Socket client) {
         int errorCode = 0;
         Socket server = null;
@@ -56,7 +47,11 @@ public class ProxyCache {
             BufferedReader fromClient = new BufferedReader(new InputStreamReader(client.getInputStream()));
             verbose("\n**** New Request ****");
             request = new HttpRequest(fromClient);
-            verbose("---> Request --->\n" + request.toString()); // Debug
+            verbose("---> Request --->\n" + request.toString());
+            if (request.getError() != 0) {
+                new HttpResponse(request.getError()).send(client);
+                return;
+            }
         } catch (IOException e) {
             System.out.println("Error reading request from client: " + e);
             new HttpResponse(400).send(client);
