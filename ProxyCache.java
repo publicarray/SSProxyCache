@@ -158,32 +158,33 @@ public class ProxyCache {
 
     /** Read command line arguments and start proxy */
     public static void main(String args[]) {
-        for (String argument: args) { // http://java.about.com/od/javasyntax/a/Using-Command-Line-Arguments.htm
-            if(argument.equals("-s") || argument.equals("--secure")) {
-                // proxy secure HTTPS/TLS connections (experimental as it can course 100% CPU usage)
-                secure = true;
-                System.out.print("Proxy HTTPS/TLS connections. (experimental as it can course 100% CPU usage)\n");
-
-            }
-            if(argument.equals("-e") || argument.equals("--expires")) {
-                // when validating the cache also check the expires header, this can reduce the number of requests out to the web.
-                expires = true;
-                System.out.print("Check expires headers when checking the freshniss of an object in the cache.\n");
-            }
-        }
-
         int myPort = 0;
 
         try {
             myPort = Integer.parseInt(args[0]);
         } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("Need port number as argument");
+            System.out.println("Usage: ProxyCache <Port Number>\nArguments:\n  -s, --secure    Proxy HTTPS/TLS (experimental, can use 100% CPU)\n  -e, --expires   Check expires headers");
+            // System.out.println("Need port number as argument");
             System.exit(-1);
         } catch (NumberFormatException e) {
             System.out.println("Please give port number as integer.");
             System.exit(-1);
         }
         init(myPort);
+
+        for (String argument: args) { // http://java.about.com/od/javasyntax/a/Using-Command-Line-Arguments.htm
+            if(argument.equals("-s") || argument.equals("--secure")) {
+                // proxy secure HTTPS/TLS connections (experimental as it can course 100% CPU usage)
+                secure = true;
+                System.out.println("Proxy HTTPS/TLS connections. (experimental as it can course 100% CPU usage)");
+
+            }
+            if(argument.equals("-e") || argument.equals("--expires")) {
+                // when validating the cache also check the expires header, this can reduce the number of requests out to the web.
+                expires = true;
+                System.out.println("Check expires headers when checking the freshniss of an object in the cache.");
+            }
+        }
 
         /** Main loop. Listen for incoming connections and spawn a new
          * thread for handling them */
