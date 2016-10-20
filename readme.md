@@ -21,7 +21,7 @@ javac -Xlint:deprecation ProxyCache.java HttpRequest.java HttpResponse.java SCac
 ## Running the program
 
 ```bash
-java ProxyCache <port-number>
+java ProxyCache <port-number> [args]
 # Example:
 java ProxyCache 5001
 ```
