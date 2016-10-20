@@ -30,6 +30,8 @@ Next change your browsers or system proxy settings and start browsing the web.
 
 ### Commandline flags
 
+* -v --verbose
+    * Prints verbose output
 * -a, --secure
     * Proxy HTTPS/TLS connections. (experimental as it can course 100% CPU usage)
 * -e --expires
