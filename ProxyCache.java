@@ -182,7 +182,7 @@ public class ProxyCache {
             if(argument.equals("-e") || argument.equals("--expires")) {
                 // when validating the cache also check the expires header, this can reduce the number of requests out to the web.
                 expires = true;
-                System.out.println("Check expires headers when checking the freshniss of an object in the cache.");
+                System.out.println("Check expires header when checking the freshniss of an object in the cache.");
             }
         }
 
