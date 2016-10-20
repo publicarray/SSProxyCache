@@ -98,22 +98,6 @@ public class HttpRequest {
         this.error = 0;
     }
 
-    /**
-     * Copy constructor
-     * <p>
-     * Returns a deep copy of the 'other' HttpRequest.
-     * @param  other An existing HttpRequest to create the copy from.
-     */
-    public HttpRequest(HttpRequest other) {
-        this.method = other.method;
-        this.URL = other.URL;
-        this.version = other.version;
-        this.headers = other.headers;
-        this.host = other.host;
-        this.port = other.port;
-        this.error = other.error;
-    }
-
     public HttpResponse askServerIfvalid(Date lastModified, String etag) {
         if (lastModified == null || etag == null || etag.isEmpty()) {
             return null;

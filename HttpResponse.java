@@ -154,19 +154,6 @@ public class HttpResponse {
         body.write(bodyStr.getBytes(), 0, bodyStr.length());
     }
 
-    // copy constructor
-    public HttpResponse (HttpResponse other) {
-        this.version = other.version;
-        this.status = other.status;
-        this.statusMessage = other.statusMessage;
-        this.statusLine = other.statusLine;
-        this.headers = other.headers;
-        this.lastModified = other.lastModified;
-        this.expires = other.expires;
-        this.etag = other.etag;
-        this.body = other.body;
-    }
-
     public HttpResponse setStaus(int status) {
         this.status = status;
         return this;
@@ -207,6 +194,7 @@ public class HttpResponse {
             // Write response to host.
             DataOutputStream toClient = new DataOutputStream(host.getOutputStream());
             toClient.writeBytes(toString());
+            ProxyCache.verbose("<--- Response <--- \n" + toString());
         } catch (IOException e) {
             System.out.println("Error writing response to client: " + e);
         }

@@ -83,9 +83,10 @@ public class SCache {
             return true; // use the cached response if new response has an unrecoverable error.
         }
         if (newResponse.status == 304) { // Not modified, so still valid
-            System.out.println("SCACHE: 304 Not modified");
+            System.out.println("SCACHE: recieved 304 Not modified");
             return true;
         } else { // 200 OK and other responses
+            System.out.println("SCACHE: recieved " + newResponse.status);
             System.out.println("SCACHE: response was modified. Updating Cache.");
             put(requestURL, newResponse); // save the new response
             return false;
