@@ -143,7 +143,7 @@ public class ProxyCache {
         try {
             myPort = Integer.parseInt(args[0]);
         } catch (ArrayIndexOutOfBoundsException e) {
-            System.out.println("Usage: ProxyCache <Port Number> [args]\nArguments:\n  -v --verbose    Verbose output (more logging) \n  -s, --secure    Proxy HTTPS/TLS (experimental, can use 100% CPU)\n  -e, --expires   Check expires header");
+            System.out.println("Usage: ProxyCache <Port Number> [args]\nArguments:\n  -v, --verbose    Verbose output (more logging) \n  -s, --secure    Proxy HTTPS/TLS (experimental, can use 100% CPU)\n  -e, --expires   Check expires header");
             System.exit(-1);
         } catch (NumberFormatException e) {
             System.out.println("Please give port number as integer.");
