@@ -85,12 +85,12 @@ public class ProxyCache {
         // http://stackoverflow.com/questions/18273703/tunneling-two-socket-client-in-java#18274109
         else if (secure && request.method.equals("CONNECT")) {
             System.out.println("CONNECT found! attempt tunnel HTTPS connection.");
-            InputStream fromClient;
-            OutputStream toServer;
+            DataInputStream fromClient;
+            DataOutputStream toServer;
             try {
                 server = new Socket(request.getHost(), request.getPort());
-                fromClient = client.getInputStream();
-                toServer = server.getOutputStream();
+                fromClient = new DataInputStream(client.getInputStream());
+                toServer = new DataOutputStream(server.getOutputStream());
                 new HttpResponse(200).setMessage("Connection established").setVersion("HTTP/1.0").send(client);
             } catch (UnknownHostException e) {
                 System.out.println("Unknown host: " + request.getHost());
@@ -216,8 +216,8 @@ class TunnelThread extends Thread {
         int rs = 0;
         byte[] buffer = new byte[2048];
         try {
-            OutputStream toClient = client.getOutputStream();
-            InputStream fromServer = server.getInputStream();
+            DataOutputStream toClient = new DataOutputStream(client.getOutputStream());
+            DataInputStream fromServer = new DataInputStream(server.getInputStream());
 
             while (!server.isClosed() && !client.isClosed() && !server.isInputShutdown() && !client.isOutputShutdown()) {
                 while ((rs = fromServer.read(buffer)) != -1) {
